@@ -1,27 +1,20 @@
 package academy.backend.market_pulse.demo;
 
-import academy.backend.market_pulse.cli.AddCommand;
-import academy.backend.market_pulse.cli.ListCommand;
-import academy.backend.market_pulse.cli.MarketPulseCli;
-import academy.backend.market_pulse.cli.SearchCommand;
-import academy.backend.market_pulse.repository.InMemoryInstrumentRepository;
-import academy.backend.market_pulse.repository.InstrumentRepository;
+import academy.backend.market_pulse.cli.CommandLineFactory;
+import academy.backend.market_pulse.config.AppConfig;
 import picocli.CommandLine;
 
 /**
- * Точка входа CLI. Команды регистрируются вручную через {@code addSubcommand}, а не через
- * атрибут {@code subcommands} аннотации {@code @Command}: у команд нет конструктора без
- * аргументов, picocli не смог бы создать их самостоятельно по одному классу — каждой нужен уже
- * готовый {@code repository}.
+ * Точка входа CLI. Сборка зависимостей — в {@link AppConfig} (композиционный корень), сборка
+ * {@link CommandLine} — в {@link CommandLineFactory}; сам {@code Main} ничего не создаёт и не
+ * знает деталей, только запускает.
  */
 public class Main {
 
     public static void main(String[] args) {
-        InstrumentRepository repository = new InMemoryInstrumentRepository();
-        CommandLine cli = new CommandLine(new MarketPulseCli())
-                .addSubcommand(new SearchCommand(repository))
-                .addSubcommand(new AddCommand(repository))
-                .addSubcommand(new ListCommand(repository));
+        AppConfig config = new AppConfig();
+        CommandLine cli = CommandLineFactory.create(config);
+
         int exitCode = cli.execute(args);
         System.exit(exitCode);
     }
